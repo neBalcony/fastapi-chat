@@ -16,7 +16,7 @@ ENV PYTHONPATH=/app
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-COPY . /app
+COPY /app /app
 
 EXPOSE ${PORT:-8000}
 
