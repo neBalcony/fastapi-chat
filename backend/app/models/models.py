@@ -28,7 +28,6 @@ class Message(Base):
     __tablename__ = "messages"
     id = Column(Integer, primary_key=True, index=True)
     content = Column(Text, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
 
@@ -39,4 +38,3 @@ class UserChat(Base):
     __tablename__ = "user_chats"
     user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     chat_id = Column(Integer, ForeignKey("chats.id"), primary_key=True)
-    joined_at = Column(DateTime, default=datetime.utcnow)
