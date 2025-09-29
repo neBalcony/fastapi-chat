@@ -1,4 +1,4 @@
-from api.routes import chat
+from app.api.routes import chat
 from fastapi import APIRouter
 
 api_router = APIRouter()

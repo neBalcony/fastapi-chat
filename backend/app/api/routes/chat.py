@@ -1,7 +1,7 @@
 from fastapi import APIRouter
-from api.deps import SessionDep
-from models.models import Chat
-from schemas.schemas import ChatCreate
+from app.api.deps import SessionDep
+from app.models.models import Chat
+from app.schemas.schemas import ChatCreate
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 

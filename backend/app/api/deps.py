@@ -2,7 +2,7 @@ from collections.abc import Generator
 from typing import Annotated
 
 from fastapi import Depends
-from core.db import engine
+from app.core.db import engine
 from sqlalchemy.orm import Session
 
 

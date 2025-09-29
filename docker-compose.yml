@@ -1,9 +1,8 @@
 
 services:
-  web:
+  backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
     env_file: .env
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
@@ -11,20 +10,25 @@ services:
       - PYTHONUNBUFFERED=1
     ports:
       - "${PORT:-8000}:8000"
+    develop:
+      watch:
+        - path: ./backend/requirements.txt
+          action: rebuild
     volumes:
-      - ./backend/app:/app
-
+      - ./backend:/app
     depends_on:
       db:
         condition: service_healthy
+      # prestart:
+        # condition: service_completed_successfully
     # healthcheck:
     #   test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
     #   interval: 10s
     #   timeout: 5s
     #   retries: 3
     # restart: unless-stopped
-    command: >
-      uvicorn main:app
+    command:
+      uvicorn app.main:app
       --host 0.0.0.0
       --port 8000
       --reload
@@ -44,21 +48,7 @@ services:
     restart: unless-stopped
 
 
-  prestart:
-  
-    build:
-      context: ./backend
-    networks:
-      - default
-    depends_on:
-      db:
-        condition: service_healthy
-        restart: true
-    command: bash scripts/prestart.sh
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+ 
 
 volumes:
   postgres_data:

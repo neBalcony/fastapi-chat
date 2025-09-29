@@ -1,3 +1,6 @@
 fastapi[standard]
 sqlalchemy
 psycopg2
+tenacity
+pydantic_settings
+alembic
