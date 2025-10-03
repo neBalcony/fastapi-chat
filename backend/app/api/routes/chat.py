@@ -7,7 +7,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 
 @router.post("/create")
 def create_chat(chat_in: ChatCreate, session: SessionDep):
-	chat = Chat(**chat_in.dict())
+	chat = Chat(**chat_in.model_dump())
 	session.add(chat)
 	session.commit()
 	session.refresh(chat)

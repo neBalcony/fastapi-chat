@@ -1,5 +1,6 @@
 # SQLAlchemy models for a chat app: User, Chat, Message
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
+import enum
+from sqlalchemy import Column, Enum, Integer, String, ForeignKey, DateTime, Text
 from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime
 
@@ -15,12 +16,20 @@ class User(Base):
     messages = relationship("Message", back_populates="user")
     chats = relationship("Chat", secondary="user_chats", back_populates="users")
 
+class ChatType(enum.Enum):
+	dm = "dm"
+	grup = "grup"
+
 class Chat(Base):
     __tablename__ = "chats"
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(100), nullable=True)
+    title = Column(String(100), nullable=False)
+    description = Column(String(), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-
+    type = Column(
+        Enum(ChatType, name="chat_type_enum", native_enum=False), 
+        nullable=False,
+    )
     messages = relationship("Message", back_populates="chat")
     users = relationship("User", secondary="user_chats", back_populates="chats")
 

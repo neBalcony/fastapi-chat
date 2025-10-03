@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,EmailStr
 from typing import Optional, List
 from datetime import datetime
+from enum import Enum
 
 # User schemas
 class UserBase(BaseModel):
@@ -8,17 +9,31 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
 	password: str
+	email: EmailStr
+	display_name: str|None = None
+	avatar_url: str|None = None
 
 class UserRead(UserBase):
 	id: int
-	created_at: datetime
+	email: EmailStr
+	display_name: str|None = None
+	avatar_url: str|None = None
+	status: str|None = None
+	created_at: datetime|None = None
 
 	class Config:
 		orm_mode = True
-		
+
 # Chat schemas
+class ChatType(str, Enum):
+	dm = "dm"
+	grup = "grup"
+
 class ChatBase(BaseModel):
-	title: Optional[str] = None
+	title: str
+	description: str
+	type: ChatType
+	users: List[UserRead] = []
 
 class ChatCreate(ChatBase):
 	pass
@@ -26,33 +41,28 @@ class ChatCreate(ChatBase):
 class ChatRead(ChatBase):
 	id: int
 	created_at: datetime
-	users: List[UserRead] = []
+	created_by: int #user id
 
 	class Config:
 		orm_mode = True
 
 # Message schemas
 class MessageBase(BaseModel):
+	chat_id: int	
 	content: str
 
 class MessageCreate(MessageBase):
-	chat_id: int
+	pass
 
 class MessageRead(MessageBase):
-	id: int
-	timestamp: datetime
+	msg_id: int
 	user_id: int
-	chat_id: int
-	user: Optional[UserRead]
+	author_id: int	
+	created_at: datetime
+	updated_at: datetime | None
 
-	class Config:
-		orm_mode = True
-
-# UserChat schema (for completeness, usually not exposed directly)
-class UserChatRead(BaseModel):
-	user_id: int
-	chat_id: int
-	joined_at: datetime
+class MessageEdit(MessageBase):
+	msg_id: int
 
 	class Config:
 		orm_mode = True
