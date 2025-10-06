@@ -25,3 +25,13 @@ $ alembic revision --autogenerate -m "Add column last_name to User model"
 ```console
 $ alembic upgrade head
 ```
+
+
+For init data
+```console
+$ docker compose exec backend bash
+```
+
+```console
+$ python ./app/initial_data.py
+```
