@@ -16,12 +16,17 @@ def get_avalible_chats(session: SessionDep, user: CurrentUser):
 
 @router.get("/{chat_id}", response_model=ChatRead)
 def get_chat_info(chat_id: int, session: SessionDep, user: CurrentUser):
+    """
+    Get chat by ID
+    """
     stmt = select(Chat).options(joinedload(Chat.users)).where(Chat.id == chat_id)
     chat = session.execute(stmt).scalars().first()
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-    if user not in chat.users:
+    if not user:
         raise HTTPException(status_code=403, detail="Not authorized")
+    if user not in chat.users:
+        raise HTTPException(status_code=403, detail="You don't have permission for this chat")
     return ChatRead.model_validate(chat)
 
 @router.post("/", response_model=ChatRead)
