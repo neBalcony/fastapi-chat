@@ -10,27 +10,33 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 
 @router.get("/", response_model=List[ChatRead])
 def get_avalible_chats(session: SessionDep, user: CurrentUser):
+    """
+    Get available chats for users.
+    """
     chats = session.execute(select(Chat).where(Chat.users.contains(user))).scalars().all()
     return [ChatRead.model_validate(chat) for chat in chats]
 
 
 @router.get("/{chat_id}", response_model=ChatRead)
-def get_chat_info(chat_id: int, session: SessionDep, user: CurrentUser):
+def get_chat_info(chat_id: int, session: SessionDep, current_user: CurrentUser):
     """
-    Get chat by ID
+    Get chat by ID.
     """
     stmt = select(Chat).options(joinedload(Chat.users)).where(Chat.id == chat_id)
     chat = session.execute(stmt).scalars().first()
-    if not chat:
+    if chat is None:
         raise HTTPException(status_code=404, detail="Chat not found")
-    if not user:
+    if current_user is None:
         raise HTTPException(status_code=403, detail="Not authorized")
-    if user not in chat.users:
+    if current_user not in chat.users:
         raise HTTPException(status_code=403, detail="You don't have permission for this chat")
     return ChatRead.model_validate(chat)
 
 @router.post("/", response_model=ChatRead)
 def create_chat(chat_in: ChatCreate, session: SessionDep, current_user: CurrentUser):
+    """
+    Create new chat.
+    """
     if current_user is None:
         raise HTTPException(status_code=403, detail="Not authorized")
     # Check user existence
@@ -73,12 +79,17 @@ def create_chat(chat_in: ChatCreate, session: SessionDep, current_user: CurrentU
 
 
 @router.put("/{chat_id}", response_model=ChatUpdate)
-async def update_chat(chat_id: int, chat_update: ChatUpdate, session: SessionDep, user: CurrentUser):
+async def update_chat(chat_id: int, chat_update: ChatUpdate, session: SessionDep, current_user: CurrentUser):
+    """
+    Update a chat.
+    """
     chat = session.get(Chat, chat_id)
     if chat is None:
         raise HTTPException(status_code=404, detail="Chat not found")
-    if user not in chat.users:
+    if current_user is None:
         raise HTTPException(status_code=403, detail="Not authorized")
+    if current_user not in chat.users:
+        raise HTTPException(status_code=403, detail="You don't have permission for this chat")
 
     chat.title = chat_update.title
     chat.description = chat_update.description
@@ -91,14 +102,19 @@ async def update_chat(chat_id: int, chat_update: ChatUpdate, session: SessionDep
 
 #TODO: Make schems for return
 @router.delete("/{chat_id}/user", response_model=ChatRemoveUsers)
-async def remove_users_from_chat(chat_id:int ,user_ids: List[int], session: SessionDep, user: CurrentUser):
+async def remove_users_from_chat(chat_id:int ,user_ids: List[int], session: SessionDep, current_user: CurrentUser):
+    """
+    Remove users from chat.
+    """
     stmt = select(Chat).options(joinedload(Chat.users)).where(Chat.id == chat_id)
     chat = session.execute(stmt).scalars().first()
     
-    if not chat:
+    if chat is None:
         raise HTTPException(status_code=404, detail="Chat not found")
-    if user not in chat.users:
+    if current_user is None:
         raise HTTPException(status_code=403, detail="Not authorized")
+    if current_user not in chat.users:
+        raise HTTPException(status_code=403, detail="You don't have permission for this chat")
 
     chat_users_id = [user.id for user in chat.users]
     not_in_chat = [uid for uid in user_ids if uid not in chat_users_id]
@@ -116,17 +132,20 @@ async def remove_users_from_chat(chat_id:int ,user_ids: List[int], session: Sess
     return ChatRemoveUsers(removed_users=user_ids)
     
 @router.patch("/{chat_id}/user", response_model=ChatAddUsers)
-async def add_users(chat_id:int ,user_ids: List[int], session: SessionDep, user: CurrentUser):
-
+async def add_users(chat_id:int ,user_ids: List[int], session: SessionDep, current_user: CurrentUser):
+    """
+    Add users to chat.
+    """
     # Get chat with users
     stmt = select(Chat).options(joinedload(Chat.users)).where(Chat.id == chat_id)
     chat = session.execute(stmt).scalars().first()
     
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-
-    if user not in chat.users:
+    if current_user is None:
         raise HTTPException(status_code=403, detail="Not authorized")
+    if current_user not in chat.users:
+        raise HTTPException(status_code=403, detail="You don't have permission for this chat")
 
     # Get users from user_ids
     stmt = select(User).where(User.id.in_(user_ids))
